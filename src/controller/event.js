@@ -75,4 +75,77 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
+  updateProduct: async (request, response) => {
+    try {
+      const { id } = request.params;
+      const { name, category, location, detail, dateTimeShow, price } =
+        request.body;
+
+      const checkId = await eventModel.getEventById(id);
+
+      if (checkId.data.length < 1) {
+        return wrapper.response(
+          response,
+          404,
+          `Data By Id ${id} Not Found`,
+          []
+        );
+      }
+
+      const setData = {
+        name,
+        category,
+        location,
+        detail,
+        dateTimeShow,
+        price,
+      };
+
+      const result = await eventModel.updateEvent(id, setData);
+
+      return wrapper.response(
+        response,
+        result.status,
+        "Success Update Data",
+        result.data
+      );
+    } catch (error) {
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(response, status, statusText, errorData);
+    }
+  },
+  deleteEvent: async (request, response) => {
+    try {
+      // console.log(request.params)
+      const { id } = request.params;
+
+      const result = await eventModel.deleteEvent(id);
+
+      if (result.data.length < 1) {
+        return wrapper.response(
+          response,
+          404,
+          `Data By Id ${id} Not Found`,
+          []
+        );
+      }
+      return wrapper.response(
+        response,
+        result.status,
+        "Success Delete Data",
+        result.data
+      );
+    } catch (error) {
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(response, status, statusText, errorData);
+    }
+  },
 };
