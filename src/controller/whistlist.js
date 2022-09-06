@@ -3,15 +3,35 @@ const wrapper = require("../utils/wrapper");
 
 module.exports = {
   getAllWhistlist: async (request, response) => {
-    let { userId } = request.query;
+    // let {  page, limit } = request.query;
+    let { userId, page, limit } = request.query;
     userId = `${userId || ""}`;
+    page = +page;
+    limit = +limit;
+
+    const totalData = await wishtlistModel.getCountWishlist();
+    const totalPage = Math.ceil(totalData / limit);
+    const pagination = {
+      page,
+      totalPage,
+      limit,
+      totalData,
+    };
+
+    const offset = page * limit - limit;
+
     try {
-      const result = await wishtlistModel.getAllWhistlist(userId);
+      const result = await wishtlistModel.getAllWhistlist(
+        userId,
+        offset,
+        limit
+      );
       return wrapper.response(
         response,
         result.status,
         "Success get Data !",
-        result.data
+        result.data,
+        pagination
       );
     } catch (error) {
       const { status, statusText, error: errorData } = error;
