@@ -4,12 +4,35 @@ const wrapper = require("../utils/wrapper");
 module.exports = {
   showAllEvent: async (request, response) => {
     try {
-      const result = await eventModel.showAllEvent();
+      let { page, limit, searchName, sort } = request.query;
+      page = +page;
+      limit = +limit;
+      searchName = `%${searchName || ""}%`;
+      sort = sort || "dateTimeShow";
+
+      const totalData = await eventModel.getCountEvent();
+      const totalPage = Math.ceil(totalData / limit);
+      const pagination = {
+        page,
+        totalPage,
+        limit,
+        totalData,
+      };
+
+      const offset = page * limit - limit;
+
+      const result = await eventModel.showAllEvent(
+        offset,
+        limit,
+        searchName,
+        sort
+      );
       return wrapper.response(
         response,
         result.status,
         "Success get Data !",
-        result.data
+        result.data,
+        pagination
       );
     } catch (error) {
       const { status, statusText, error: errorData } = error;
