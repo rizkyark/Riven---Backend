@@ -5,8 +5,8 @@ module.exports = {
   showAllEvent: async (request, response) => {
     try {
       let { page, limit, searchName, sort } = request.query;
-      page = +page;
-      limit = +limit;
+      page = +page || "1";
+      limit = +limit || 5;
       searchName = `%${searchName || ""}%`;
       sort = sort || "dateTimeShow";
 
