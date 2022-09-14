@@ -1,5 +1,6 @@
 const eventModel = require("../models/event");
 const wrapper = require("../utils/wrapper");
+const redis = require("../config/redis");
 
 module.exports = {
   showAllEvent: async (request, response) => {
@@ -53,6 +54,9 @@ module.exports = {
           []
         );
       }
+
+      redis.setEx(`getEvent:${id}`, 3600, JSON.stringify(result));
+
       return wrapper.response(
         response,
         result.status,

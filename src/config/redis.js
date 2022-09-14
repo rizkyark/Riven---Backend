@@ -4,8 +4,13 @@ const redisPassword = "hJPbgIrXyrGnt2E81AdEDO33JDncZxJY";
 const redisHost = "redis-11663.c73.us-east-1-2.ec2.cloud.redislabs.com";
 const redisPort = "11663";
 
+// const client = redis.createClient();
 const client = redis.createClient({
-  url: `redis://:${redisPassword}@${redisHost}:${redisPort}`,
+  socket: {
+    host: redisHost,
+    port: redisPort,
+  },
+  password: redisPassword,
 });
 
 (async () => {
@@ -15,3 +20,8 @@ const client = redis.createClient({
     console.log("connect redis...");
   });
 })();
+
+module.exports = client;
+
+// npm install -g redis-cli
+// rdcli -h redis-11663.c73.us-east-1-2.ec2.cloud.redislabs.com -a hJPbgIrXyrGnt2E81AdEDO33JDncZxJY -p 11663
