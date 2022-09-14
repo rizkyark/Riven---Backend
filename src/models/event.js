@@ -85,4 +85,18 @@ module.exports = {
           }
         });
     }),
+  getImage: (id) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("event")
+        .select("image")
+        .eq("eventId", id)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
 };

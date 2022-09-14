@@ -1,6 +1,7 @@
 const eventModel = require("../models/event");
 const wrapper = require("../utils/wrapper");
 const redis = require("../config/redis");
+const cloudinary = require("../config/cloudinary");
 
 module.exports = {
   showAllEvent: async (request, response) => {
@@ -28,6 +29,13 @@ module.exports = {
         searchName,
         sort
       );
+
+      redis.setEx(
+        `getEvent:${JSON.stringify(request.query)}`,
+        3600,
+        JSON.stringify(result)
+      );
+
       return wrapper.response(
         response,
         result.status,
@@ -83,7 +91,15 @@ module.exports = {
         detail,
         dateTimeShow,
         price,
+        // image: `${request.file.filename}.${
+        //   request.file.mimetype.split("/")[1]
+        // }`,
+        // imagePath: request.file.path,
       };
+      if (request.file) {
+        const { filename: image, path: imagePath } = request.file;
+        Object.assign(setData, { image, imagePath });
+      }
 
       const result = await eventModel.createEvent(setData);
 
@@ -102,7 +118,7 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
-  updateProduct: async (request, response) => {
+  updateEvent: async (request, response) => {
     try {
       const { id } = request.params;
       const { name, category, location, detail, dateTimeShow, price } =
@@ -118,7 +134,10 @@ module.exports = {
           []
         );
       }
-
+      const currentImage = await eventModel.getImage(id);
+      if (currentImage) {
+        cloudinary.uploader.destroy(currentImage.data[0].image);
+      }
       const setData = {
         name,
         category,
@@ -126,7 +145,19 @@ module.exports = {
         detail,
         dateTimeShow,
         price,
+        updatedAt: new Date(Date.now()),
       };
+      if (request.file) {
+        const { filename: image, path: imagePath } = request.file;
+        Object.assign(setData, { image, imagePath });
+      }
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const data in setData) {
+        if (!setData[data]) {
+          delete setData[data];
+        }
+      }
 
       const result = await eventModel.updateEvent(id, setData);
 
@@ -149,6 +180,11 @@ module.exports = {
     try {
       // console.log(request.params)
       const { id } = request.params;
+
+      const currentImage = await eventModel.getImage(id);
+      if (currentImage) {
+        cloudinary.uploader.destroy(currentImage.data[0].image);
+      }
 
       const result = await eventModel.deleteEvent(id);
 
