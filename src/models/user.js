@@ -28,6 +28,20 @@ module.exports = {
           }
         });
     }),
+  getImage: (id) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("user")
+        .select("image")
+        .eq("userId", id)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
   createUser: (data) =>
     new Promise((resolve, reject) => {
       supabase
@@ -46,6 +60,20 @@ module.exports = {
       supabase
         .from("user")
         .update(data)
+        .eq("userId", id)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
+  updatePassword: (id, hash) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("user")
+        .update(hash)
         .eq("userId", id)
         .then((result) => {
           if (!result.error) {

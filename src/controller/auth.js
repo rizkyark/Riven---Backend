@@ -62,7 +62,7 @@ module.exports = {
       }
 
       const checkUser = await authModel.getUserByEmail(email);
-      console.log(checkUser.data[0].password);
+      // console.log(checkUser.data[0].password);
 
       if (!checkUser.length === 0) {
         return wrapper.response(

@@ -19,16 +19,11 @@ module.exports = {
   },
   getAllEventRedis: async (req, res, next) => {
     try {
-      const data = await redis.get(`getEvent:${JSON.stringify(req.query)}`);
-      if (data !== null) {
-        const { result, pageInfo } = JSON.parse(data);
-        return wrapper.response(
-          res,
-          200,
-          "Success get data!",
-          result,
-          pageInfo
-        );
+      const result = await redis.get(`getEvent:${JSON.stringify(req.query)}`);
+      if (result !== null) {
+        const { data, pageInfo } = JSON.parse(result);
+        // console.log(data);
+        return wrapper.response(res, 200, "Success get data!", data, pageInfo);
       }
       return next();
     } catch (error) {

@@ -1,5 +1,8 @@
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const userModel = require("../models/user");
 const wrapper = require("../utils/wrapper");
+const cloudinary = require("../config/cloudinary");
 
 module.exports = {
   showAllUser: async (request, response) => {
@@ -110,7 +113,15 @@ module.exports = {
         profession,
         nationality,
         dateOfBirth,
+        updatedAt: new Date(Date.now()),
       };
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const data in setData) {
+        if (!setData[data]) {
+          delete setData[data];
+        }
+      }
 
       const result = await userModel.updateUser(id, setData);
 
@@ -118,6 +129,129 @@ module.exports = {
         response,
         result.status,
         "Success Update Data",
+        result.data
+      );
+    } catch (error) {
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(response, status, statusText, errorData);
+    }
+  },
+  updateImage: async (request, response) => {
+    try {
+      const { id } = request.params;
+
+      const checkId = await userModel.getUserById(id);
+
+      if (checkId.data.length < 1) {
+        return wrapper.response(
+          response,
+          404,
+          `Data By Id ${id} Not Found`,
+          []
+        );
+      }
+
+      if (id !== request.decodeToken.userId) {
+        return wrapper.response(
+          response,
+          401,
+          "Unable to update user image with different id",
+          null
+        );
+      }
+      const currentImage = await userModel.getImage(id);
+      if (currentImage) {
+        cloudinary.uploader.destroy(currentImage.data[0].image);
+      }
+
+      const { filename: image, path: imagePath } = request.file;
+      const setData = { image, imagePath, updatedAt: new Date(Date.now()) };
+
+      const result = await userModel.updateUser(id, setData);
+
+      return wrapper.response(
+        response,
+        result.status,
+        "Profile picture is successfully updated",
+        result.data
+      );
+    } catch (error) {
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(response, status, statusText, errorData);
+    }
+  },
+  updatePassword: async (request, response) => {
+    try {
+      const { id } = request.params;
+
+      const checkId = await userModel.getUserById(id);
+
+      if (checkId.data.length < 1) {
+        return wrapper.response(
+          response,
+          404,
+          `Data By Id ${id} Not Found`,
+          []
+        );
+      }
+
+      const { newPassword, confirmPassword } = request.body;
+      // if (id !== request.decodeToken.userId) {
+      //   return wrapper.response(
+      //     response,
+      //     401,
+      //     "Unable to update user password with different id",
+      //     null
+      //   );
+      // }
+
+      // Password format validation
+      const validatePassword = (checkPassword) =>
+        String(checkPassword).match(
+          /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-/<>]).{8,}$/
+        );
+
+      if (!validatePassword(newPassword)) {
+        return wrapper.response(
+          response,
+          400,
+          "Password should be at least 8 characters and contain at least 1 capital letter, 1 number, and 1 special character",
+          null
+        );
+      }
+
+      if (newPassword !== confirmPassword) {
+        return wrapper.response(
+          response,
+          400,
+          "Confirm password doesn't match",
+          null
+        );
+      }
+
+      // Password Hashing
+      const saltRounds = 10;
+      const salt = await bcrypt.genSalt(saltRounds);
+      const encryptPassword = await bcrypt.hash(newPassword, salt);
+      const setData = {
+        password: encryptPassword,
+        updatedAt: new Date(Date.now()),
+      };
+
+      const result = await userModel.updateUser(id, setData);
+
+      return wrapper.response(
+        response,
+        result.status,
+        "Success Update Password",
         result.data
       );
     } catch (error) {

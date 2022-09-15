@@ -33,7 +33,7 @@ module.exports = {
       redis.setEx(
         `getEvent:${JSON.stringify(request.query)}`,
         3600,
-        JSON.stringify(result)
+        JSON.stringify(result.data)
       );
 
       return wrapper.response(
@@ -63,7 +63,7 @@ module.exports = {
         );
       }
 
-      redis.setEx(`getEvent:${id}`, 3600, JSON.stringify(result));
+      redis.setEx(`getEvent:${id}`, 3600, JSON.stringify(result.data));
 
       return wrapper.response(
         response,
