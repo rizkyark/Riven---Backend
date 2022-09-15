@@ -1,4 +1,3 @@
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const userModel = require("../models/user");
 const wrapper = require("../utils/wrapper");
@@ -204,16 +203,7 @@ module.exports = {
       }
 
       const { newPassword, confirmPassword } = request.body;
-      // if (id !== request.decodeToken.userId) {
-      //   return wrapper.response(
-      //     response,
-      //     401,
-      //     "Unable to update user password with different id",
-      //     null
-      //   );
-      // }
 
-      // Password format validation
       const validatePassword = (checkPassword) =>
         String(checkPassword).match(
           /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-/<>]).{8,}$/
@@ -237,7 +227,6 @@ module.exports = {
         );
       }
 
-      // Password Hashing
       const saltRounds = 10;
       const salt = await bcrypt.genSalt(saltRounds);
       const encryptPassword = await bcrypt.hash(newPassword, salt);
