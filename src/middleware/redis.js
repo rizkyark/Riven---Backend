@@ -21,9 +21,14 @@ module.exports = {
     try {
       const result = await redis.get(`getEvent:${JSON.stringify(req.query)}`);
       if (result !== null) {
-        const { data, pageInfo } = JSON.parse(result);
+        // const { data, pageInfo } = JSON.parse(result);
         // console.log(data);
-        return wrapper.response(res, 200, "Success get data!", data, pageInfo);
+        return wrapper.response(
+          res,
+          200,
+          "Success get data redis!",
+          JSON.parse(result)
+        );
       }
       return next();
     } catch (error) {

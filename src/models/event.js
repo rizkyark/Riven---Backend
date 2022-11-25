@@ -14,14 +14,54 @@ module.exports = {
           }
         });
     }),
-  showAllEvent: (offset, limit, searchName, sort) =>
-    new Promise((resolve, reject) => {
+  showAllEvent: (offset, limit, searchName, sort, searchDateShow) => {
+    // new Promise((resolve, reject) => {
+    //   const day = new Date(searchDateShow);
+    //   const nextDay = new Date(new Date(day).setDate(day.getDate() + 1));
+    //   // const query = supabase
+    //   .from("event")
+    //   .select("*")
+    //   .range(offset, offset + limit - 1)
+    //   .ilike("name", `%${searchName}%`)
+    //   .order(`${sort}`, { ascending: true });
+    // .gt("dateTimeShow", `${day.toISOString()}`)
+    // .lt("dateTimeShow", `${nextDay.toISOString()}`)
+    // query.then((result) => {
+    //   if (!result.error) {
+    //     resolve(result);
+    //   } else {
+    //     reject(result);
+    //   }
+    // });
+
+    if (searchDateShow === "") {
+      return new Promise((resolve, reject) => {
+        supabase
+          .from("event")
+          .select("*")
+          .range(offset, offset + limit - 1)
+          .ilike("name", `%${searchName}%`)
+          .order(`${sort}`, { ascending: true })
+          .then((result) => {
+            if (!result.error) {
+              resolve(result);
+            } else {
+              reject(result);
+            }
+          });
+      });
+    }
+    return new Promise((resolve, reject) => {
+      const day = new Date(searchDateShow);
+      const nextDay = new Date(new Date(day).setDate(day.getDate() + 1));
       supabase
         .from("event")
         .select("*")
         .range(offset, offset + limit - 1)
         .ilike("name", `%${searchName}%`)
         .order(`${sort}`, { ascending: true })
+        .gt("dateTimeShow", `${day.toISOString()}`)
+        .lt("dateTimeShow", `${nextDay.toISOString()}`)
         .then((result) => {
           if (!result.error) {
             resolve(result);
@@ -29,7 +69,9 @@ module.exports = {
             reject(result);
           }
         });
-    }),
+    });
+  },
+
   getEventById: (id) =>
     new Promise((resolve, reject) => {
       supabase

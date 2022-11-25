@@ -36,7 +36,7 @@ module.exports = {
       return wrapper.response(
         response,
         result.status,
-        "Success Get Greetings",
+        "Success Get User By Id",
         result.data
       );
     } catch (error) {
@@ -163,7 +163,7 @@ module.exports = {
         );
       }
       const currentImage = await userModel.getImage(id);
-      if (currentImage) {
+      if (request.file && currentImage) {
         cloudinary.uploader.destroy(currentImage.data[0].image);
       }
 

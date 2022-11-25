@@ -11,6 +11,11 @@ Router.post(
   bookingController.createBooking
 );
 Router.get(
+  "/section/:id",
+  authMiddleware.authentication,
+  bookingController.getBookingSection
+);
+Router.get(
   "/:id",
   authMiddleware.authentication,
   bookingController.getBookingByUserId

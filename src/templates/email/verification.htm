@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      h4 {
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: x-large;
+      }
+      p{
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+      }
+      .box {
+        display: grid;
+        box-shadow: 0 0 10px rgb(14, 9, 9);
+        width: 500px;
+        margin: auto;
+        margin-top: 50px;
+        background-color: #F5EFE6;
+        border-radius: 30px;
+      }
+      .box div {
+        color: black;
+        display: grid;
+        align-items: center;
+        text-align: center;
+      }
+      button {
+        color: white;
+        background: #AEBDCA;
+        border: none;
+        width: 150px;
+        padding: 15px;
+        margin: auto;
+        margin-bottom: 25px;
+        margin-top: 10px;
+        border-radius: 15px;
+        font-size: 20px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div style="padding-top: 20px">
+        <h4>Hello user &#x1F44B;</h4>
+      </div>
+      <div>
+        <p>click link below to verify your account:</p>
+      </div>
+      <div>
+        <a href="{{link}}">
+          <button>Verify</button>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

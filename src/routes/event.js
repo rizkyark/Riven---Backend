@@ -7,7 +7,7 @@ const redisMiddleware = require("../middleware/redis");
 const uploadMiddleware = require("../middleware/uploadFile");
 const authMiddleware = require("../middleware/auth");
 
-Router.get("/", redisMiddleware.getAllEventRedis, eventController.showAllEvent);
+Router.get("/", eventController.showAllEvent);
 Router.get(
   "/:id",
   redisMiddleware.getEventByIdRedis,
@@ -16,21 +16,23 @@ Router.get(
 Router.post(
   "/",
   authMiddleware.authentication,
-  authMiddleware.isAdmin,
+  // authMiddleware.isAdmin,
   uploadMiddleware.eventImage,
+  redisMiddleware.clearEventRedis,
   eventController.createEvent
 );
 Router.patch(
   "/:id",
   authMiddleware.authentication,
-  authMiddleware.isAdmin,
+  // authMiddleware.isAdmin,
   uploadMiddleware.eventImage,
+  redisMiddleware.clearEventRedis,
   eventController.updateEvent
 );
 Router.delete(
   "/:id",
-  authMiddleware.authentication,
-  authMiddleware.isAdmin,
+  // authMiddleware.authentication,
+  // authMiddleware.isAdmin,
   redisMiddleware.clearEventRedis,
   eventController.deleteEvent
 );

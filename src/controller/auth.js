@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const authModel = require("../models/auth");
 const wrapper = require("../utils/wrapper");
 const redis = require("../config/redis");
-const userModel = require("../models/user");
+const { sendMail } = require("../utils/mail");
 
 module.exports = {
   showGreetings: async (request, response) => {
@@ -35,6 +35,7 @@ module.exports = {
         email,
         password,
       } = request.body;
+      const OTP = Math.floor(Math.random() * 899999 + 100000);
 
       const validateEmail = (checkEmail) =>
         String(checkEmail)
@@ -62,9 +63,10 @@ module.exports = {
       }
 
       const checkUser = await authModel.getUserByEmail(email);
-      // console.log(checkUser.data[0].password);
+      // eslint-disable-next-line no-console
+      // console.log(checkUser.data[0].status);
 
-      if (!checkUser.length === 0) {
+      if (checkUser.data.length >= 1 && checkUser.data[0].status === "Active") {
         return wrapper.response(
           response,
           404,
@@ -72,32 +74,61 @@ module.exports = {
           null
         );
       }
+      if (
+        checkUser.data.length >= 1 &&
+        checkUser.data[0].status === "Not Active"
+      ) {
+        redis.set(`OTP:${OTP}`, checkUser.data[0].userId);
+      }
 
-      const saltRounds = 10;
-      const salt = await bcrypt.genSalt(saltRounds);
-      const hash = await bcrypt.hash(password, salt);
-
-      const setData = {
-        name,
-        username,
-        gender,
-        profession,
-        nationality,
-        dateOfBirth,
-        email,
-        password: hash,
+      const setMail = {
+        to: email,
+        subject: "Email Verification",
+        template: "otp.html",
+        OTP,
       };
 
-      const result = await authModel.register(setData);
-      delete result.data[0].password;
+      sendMail(setMail);
+
+      if (checkUser.data.length < 1) {
+        const saltRounds = 10;
+        const salt = await bcrypt.genSalt(saltRounds);
+        const hash = await bcrypt.hash(password, salt);
+
+        const setData = {
+          name,
+          username,
+          gender,
+          profession,
+          nationality,
+          dateOfBirth,
+          email,
+          password: hash,
+        };
+
+        const result = await authModel.register(setData);
+        delete result.data[0].password;
+        redis.set(`OTP:${OTP}`, result.data[0].userId);
+
+        return wrapper.response(
+          response,
+          result.status,
+          "Success Create Data, please check your email",
+          result.data
+        );
+      }
+
+      // if (result.data[0].status === "Not Active") {
 
       return wrapper.response(
         response,
-        result.status,
-        "Success Create Data",
-        result.data
+        200,
+        "Your email has not been activated, please check your email inbox",
+        checkUser.data
       );
+      // }
     } catch (error) {
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -127,10 +158,14 @@ module.exports = {
       // console.log(payload);
 
       const token = jwt.sign({ ...payload }, "RAHASIA", { expiresIn: "1h" });
+      const refreshToken = jwt.sign({ ...payload }, "RAHASIABARU", {
+        expiresIn: "24h",
+      });
 
       return wrapper.response(response, 200, {
         userId: payload.userId,
         token,
+        refreshToken,
       });
     } catch (error) {
       const {
@@ -141,13 +176,63 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
+  refresh: async (req, res) => {
+    try {
+      const { refreshToken } = req.body;
+
+      const checkRefreshTokenRedis = await redis.get(
+        `refreshToken:${refreshToken}`
+      );
+
+      if (checkRefreshTokenRedis) {
+        return wrapper.response(
+          res,
+          403,
+          "Your refresh token cannot be used",
+          null
+        );
+      }
+
+      jwt.verify(refreshToken, "RAHASIABARU", async (error, result) => {
+        try {
+          const payload = result;
+          delete payload.iat;
+          delete payload.exp;
+
+          const token = jwt.sign(payload, "RAHASIA", { expiresIn: "1h" });
+          const newRefreshToken = jwt.sign(payload, "RAHASIABARU", {
+            expiresIn: "24h",
+          });
+          await redis.setEx(
+            `refreshToken:${refreshToken}`,
+            3600 * 48,
+            refreshToken
+          );
+
+          return wrapper.response(res, 200, "Success refresh token", {
+            id: payload.id,
+            token,
+            refreshToken: newRefreshToken,
+          });
+        } catch (err) {
+          return wrapper.response(res, 400, "Bad response", null);
+        }
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log(error);
+      return wrapper.response(res, 400, "Bad response", null);
+    }
+  },
   logout: async (request, response) => {
     try {
       let token = request.headers.authorization;
+      const { refreshToken } = request.body;
       // eslint-disable-next-line prefer-destructuring
       token = token.split(" ")[1];
 
       redis.setEx(`accessToken:${token}`, 3600 * 24, token);
+      redis.setEx(`refreshToken:${refreshToken}`, 3600 * 48, refreshToken);
       return wrapper.response(response, 200, "Success logout", null);
     } catch (error) {
       return wrapper.response(response, 400, "Bad response", null);

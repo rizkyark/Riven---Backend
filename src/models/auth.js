@@ -16,6 +16,20 @@ module.exports = {
           }
         });
     }),
+  getUserByStatus: (status) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("user")
+        .select("*")
+        .eq("status", status)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
   register: (data) =>
     new Promise((resolve, reject) => {
       supabase

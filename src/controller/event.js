@@ -6,11 +6,12 @@ const cloudinary = require("../config/cloudinary");
 module.exports = {
   showAllEvent: async (request, response) => {
     try {
-      let { page, limit, searchName, sort } = request.query;
+      let { page, limit, searchName, sort, searchDateShow } = request.query;
       page = +page || "1";
       limit = +limit || 5;
       searchName = `%${searchName || ""}%`;
       sort = sort || "dateTimeShow";
+      searchDateShow = searchDateShow || "";
 
       const totalData = await eventModel.getCountEvent();
       const totalPage = Math.ceil(totalData / limit);
@@ -23,17 +24,25 @@ module.exports = {
 
       const offset = page * limit - limit;
 
+      let day;
+      let nextDay;
+      if (searchDateShow) {
+        day = new Date(searchDateShow);
+        nextDay = new Date(new Date(day).setDate(day.getDate() + 1));
+      }
+
       const result = await eventModel.showAllEvent(
         offset,
         limit,
         searchName,
-        sort
+        sort,
+        searchDateShow
       );
 
       redis.setEx(
         `getEvent:${JSON.stringify(request.query)}`,
         3600,
-        JSON.stringify(result.data)
+        JSON.stringify(result)
       );
 
       return wrapper.response(
@@ -135,7 +144,7 @@ module.exports = {
         );
       }
       const currentImage = await eventModel.getImage(id);
-      if (currentImage) {
+      if (request.file && currentImage) {
         cloudinary.uploader.destroy(currentImage.data[0].image);
       }
       const setData = {
