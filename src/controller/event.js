@@ -6,12 +6,18 @@ const cloudinary = require("../config/cloudinary");
 module.exports = {
   showAllEvent: async (request, response) => {
     try {
-      let { page, limit, searchName, sort, searchDateShow } = request.query;
+      let { page, limit, searchName, sort, searchDateShow, asc } =
+        request.query;
       page = +page || "1";
       limit = +limit || 5;
       searchName = `%${searchName || ""}%`;
       sort = sort || "dateTimeShow";
       searchDateShow = searchDateShow || "";
+      if (asc.toLowerCase() === "asc") {
+        asc = true;
+      } else {
+        asc = false;
+      }
 
       const totalData = await eventModel.getCountEvent();
       const totalPage = Math.ceil(totalData / limit);
@@ -36,7 +42,8 @@ module.exports = {
         limit,
         searchName,
         sort,
-        searchDateShow
+        searchDateShow,
+        asc
       );
 
       redis.setEx(

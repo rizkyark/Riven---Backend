@@ -14,7 +14,7 @@ module.exports = {
           }
         });
     }),
-  showAllEvent: (offset, limit, searchName, sort, searchDateShow) => {
+  showAllEvent: (offset, limit, searchName, sort, searchDateShow, asc) => {
     // new Promise((resolve, reject) => {
     //   const day = new Date(searchDateShow);
     //   const nextDay = new Date(new Date(day).setDate(day.getDate() + 1));
@@ -41,7 +41,7 @@ module.exports = {
           .select("*")
           .range(offset, offset + limit - 1)
           .ilike("name", `%${searchName}%`)
-          .order(`${sort}`, { ascending: true })
+          .order(`${sort}`, { ascending: asc })
           .then((result) => {
             if (!result.error) {
               resolve(result);
@@ -59,7 +59,7 @@ module.exports = {
         .select("*")
         .range(offset, offset + limit - 1)
         .ilike("name", `%${searchName}%`)
-        .order(`${sort}`, { ascending: true })
+        .order(`${sort}`, { ascending: asc })
         .gt("dateTimeShow", `${day.toISOString()}`)
         .lt("dateTimeShow", `${nextDay.toISOString()}`)
         .then((result) => {
