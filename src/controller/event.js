@@ -1,6 +1,6 @@
 const eventModel = require("../models/event");
 const wrapper = require("../utils/wrapper");
-const redis = require("../config/redis");
+// const redis = require("../config/redis");
 const cloudinary = require("../config/cloudinary");
 
 module.exports = {
@@ -46,11 +46,11 @@ module.exports = {
         asc
       );
 
-      redis.setEx(
-        `getEvent:${JSON.stringify(request.query)}`,
-        3600,
-        JSON.stringify(result)
-      );
+      // redis.setEx(
+      //   `getEvent:${JSON.stringify(request.query)}`,
+      //   3600,
+      //   JSON.stringify(result)
+      // );
 
       return wrapper.response(
         response,
@@ -79,7 +79,7 @@ module.exports = {
         );
       }
 
-      redis.setEx(`getEvent:${id}`, 3600, JSON.stringify(result.data));
+      // redis.setEx(`getEvent:${id}`, 3600, JSON.stringify(result.data));
 
       return wrapper.response(
         response,

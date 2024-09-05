@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const authModel = require("../models/auth");
 const wrapper = require("../utils/wrapper");
-const redis = require("../config/redis");
+// const redis = require("../config/redis");
 const { sendMail } = require("../utils/mail");
 
 module.exports = {
@@ -74,12 +74,12 @@ module.exports = {
           null
         );
       }
-      if (
-        checkUser.data.length >= 1 &&
-        checkUser.data[0].status === "Not Active"
-      ) {
-        redis.set(`OTP:${OTP}`, checkUser.data[0].userId);
-      }
+      // if (
+      //   checkUser.data.length >= 1 &&
+      //   checkUser.data[0].status === "Not Active"
+      // ) {
+      //   redis.set(`OTP:${OTP}`, checkUser.data[0].userId);
+      // }
 
       const setMail = {
         to: email,
@@ -108,7 +108,7 @@ module.exports = {
 
         const result = await authModel.register(setData);
         delete result.data[0].password;
-        redis.set(`OTP:${OTP}`, result.data[0].userId);
+        // redis.set(`OTP:${OTP}`, result.data[0].userId);
 
         return wrapper.response(
           response,
@@ -180,18 +180,18 @@ module.exports = {
     try {
       const { refreshToken } = req.body;
 
-      const checkRefreshTokenRedis = await redis.get(
-        `refreshToken:${refreshToken}`
-      );
+      // const checkRefreshTokenRedis = await redis.get(
+      //   `refreshToken:${refreshToken}`
+      // );
 
-      if (checkRefreshTokenRedis) {
-        return wrapper.response(
-          res,
-          403,
-          "Your refresh token cannot be used",
-          null
-        );
-      }
+      // if (checkRefreshTokenRedis) {
+      //   return wrapper.response(
+      //     res,
+      //     403,
+      //     "Your refresh token cannot be used",
+      //     null
+      //   );
+      // }
 
       jwt.verify(refreshToken, "RAHASIABARU", async (error, result) => {
         try {
@@ -203,11 +203,11 @@ module.exports = {
           const newRefreshToken = jwt.sign(payload, "RAHASIABARU", {
             expiresIn: "24h",
           });
-          await redis.setEx(
-            `refreshToken:${refreshToken}`,
-            3600 * 48,
-            refreshToken
-          );
+          // await redis.setEx(
+          //   `refreshToken:${refreshToken}`,
+          //   3600 * 48,
+          //   refreshToken
+          // );
 
           return wrapper.response(res, 200, "Success refresh token", {
             id: payload.id,
@@ -226,13 +226,13 @@ module.exports = {
   },
   logout: async (request, response) => {
     try {
-      let token = request.headers.authorization;
-      const { refreshToken } = request.body;
-      // eslint-disable-next-line prefer-destructuring
-      token = token.split(" ")[1];
+      // let token = request.headers.authorization;
+      // const { refreshToken } = request.body;
+      // // eslint-disable-next-line prefer-destructuring
+      // token = token.split(" ")[1];
 
-      redis.setEx(`accessToken:${token}`, 3600 * 24, token);
-      redis.setEx(`refreshToken:${refreshToken}`, 3600 * 48, refreshToken);
+      // redis.setEx(`accessToken:${token}`, 3600 * 24, token);
+      // redis.setEx(`refreshToken:${refreshToken}`, 3600 * 48, refreshToken);
       return wrapper.response(response, 200, "Success logout", null);
     } catch (error) {
       return wrapper.response(response, 400, "Bad response", null);
