@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const redis = require("../config/redis");
+// const redis = require("../config/redis");
 const wrapper = require("../utils/wrapper");
 
 module.exports = {
@@ -12,15 +12,15 @@ module.exports = {
     // eslint-disable-next-line prefer-destructuring
     token = token.split(" ")[1];
 
-    const checkTokenRedis = await redis.get(`accessToken:${token}`);
-    if (checkTokenRedis) {
-      return wrapper.response(
-        res,
-        403,
-        "Your token is already destroyed, please login again",
-        null
-      );
-    }
+    // const checkTokenRedis = await redis.get(`accessToken:${token}`);
+    // if (checkTokenRedis) {
+    //   return wrapper.response(
+    //     res,
+    //     403,
+    //     "Your token is already destroyed, please login again",
+    //     null
+    //   );
+    // }
 
     // eslint-disable-next-line consistent-return
     jwt.verify(token, "RAHASIA", (error, result) => {
